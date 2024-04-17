@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 # Inicialização do Pygame
 pygame.init()
@@ -96,9 +97,61 @@ def restart():
         for col in range(BOARD_COLS):
             board[row][col] = ""
 
+def computer_move(difficulty):
+    if difficulty == "easy":
+        row = random.randint(0, 2)
+        col = random.randint(0, 2)
+        while not available_square(row, col):
+            row = random.randint(0, 2)
+            col = random.randint(0, 2)
+    elif difficulty == "hard":
+        best_score = -float("inf")
+        best_move = None
+        for i in range(3):
+            for j in range(3):
+                if available_square(i, j):
+                    board[i][j] = "O"
+                    score = minimax(board, 0, False)
+                    board[i][j] = ""
+                    if score > best_score:
+                        best_score = score
+                        best_move = (i, j)
+        row, col = best_move
+    return row, col
+
+def minimax(board, depth, is_maximizing):
+    if check_win("X"):
+        return -10 + depth
+    elif check_win("O"):
+        return 10 - depth
+    elif is_board_full():
+        return 0
+
+    if is_maximizing:
+        best_score = -float("inf")
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == "":
+                    board[i][j] = "O"
+                    score = minimax(board, depth + 1, False)
+                    board[i][j] = ""
+                    best_score = max(score, best_score)
+        return best_score
+    else:
+        best_score = float("inf")
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == "":
+                    board[i][j] = "X"
+                    score = minimax(board, depth + 1, True)
+                    board[i][j] = ""
+                    best_score = min(score, best_score)
+        return best_score
+
 # Game Loop
 player = "X"
 game_over = False
+difficulty = "hard"  # Escolha entre "easy" ou "hard"
 
 draw_lines()
 
@@ -107,7 +160,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_over and player == "X":
             mouseX = event.pos[0]
             mouseY = event.pos[1]
 
@@ -122,9 +175,24 @@ while True:
                     if is_board_full():
                         game_over = True
                     else:
-                        player = "O" if player == "X" else "X"
+                        player = "O"
 
                 draw_figures()
+
+        if not game_over and player == "O":
+            if difficulty == "easy":
+                row, col = computer_move("easy")
+            elif difficulty == "hard":
+                row, col = computer_move("hard")
+
+            mark_square(row, col, player)
+            if check_win(player):
+                game_over = True
+            elif is_board_full():
+                game_over = True
+            else:
+                player = "X"
+            draw_figures()
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
