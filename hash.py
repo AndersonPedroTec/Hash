@@ -46,6 +46,7 @@ game_over = False
 difficulty = "hard"  # Escolha entre "easy" ou "hard"
 player_wins = {"X": 0, "O": 0}
 
+# Funções auxiliares
 def draw_lines():
     pygame.draw.line(screen, LINE_COLOR, (0, SQUARE_SIZE), (WIDTH, SQUARE_SIZE), LINE_WIDTH)
     pygame.draw.line(screen, LINE_COLOR, (0, 2 * SQUARE_SIZE), (WIDTH, 2 * SQUARE_SIZE), LINE_WIDTH)
@@ -174,8 +175,9 @@ def minimax(board, depth, is_maximizing):
                     best_score = min(score, best_score)
         return best_score
 
-def draw_title():
+def draw_title(alpha):
     title_text = TITLE_FONT.render("Jogo da Velha", True, (255, 255, 255))
+    title_text.set_alpha(alpha)
     screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 50))
 
 def draw_buttons():
@@ -193,6 +195,7 @@ def draw_score():
 
 # Game Loop
 title_screen = True
+alpha = 0
 
 while True:
     for event in pygame.event.get():
@@ -253,9 +256,14 @@ while True:
                 sys.exit()
 
     if title_screen:
+        if alpha < 255:
+            alpha += 5
+            if alpha > 255:
+                alpha = 255
         screen.fill(BG_COLOR)
-        draw_title()
-        draw_buttons()
+        draw_title(alpha)
+        if alpha == 255:
+            draw_buttons()
     else:
         screen.fill(BG_COLOR)
         draw_lines()
