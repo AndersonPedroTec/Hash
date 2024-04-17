@@ -29,15 +29,23 @@ VALID_MOVE_SOUND = pygame.mixer.Sound("valid_move.wav")
 VICTORY_SOUND = pygame.mixer.Sound("victory.wav")
 DRAW_SOUND = pygame.mixer.Sound("draw.wav")
 
+# Fontes
+TITLE_FONT = pygame.font.SysFont("comicsans", 70)
+TEXT_FONT = pygame.font.SysFont("comicsans", 50)
+
 # Janela
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Jogo da Velha")
-screen.fill(BG_COLOR)
 
 # Tabuleiro
 board = [["" for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)]
 
-# Funções auxiliares
+# Variáveis do jogo
+player = "X"
+game_over = False
+difficulty = "hard"  # Escolha entre "easy" ou "hard"
+player_wins = {"X": 0, "O": 0}
+
 def draw_lines():
     pygame.draw.line(screen, LINE_COLOR, (0, SQUARE_SIZE), (WIDTH, SQUARE_SIZE), LINE_WIDTH)
     pygame.draw.line(screen, LINE_COLOR, (0, 2 * SQUARE_SIZE), (WIDTH, 2 * SQUARE_SIZE), LINE_WIDTH)
@@ -108,7 +116,8 @@ def highlight_line(direction, index):
         pygame.draw.rect(screen, HIGHLIGHT_COLOR, (0, HEIGHT, WIDTH, -HEIGHT), 15)
 
 def restart():
-    screen.fill(BG_COLOR)
+    global game_over
+    game_over = False
     draw_lines()
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
@@ -165,18 +174,35 @@ def minimax(board, depth, is_maximizing):
                     best_score = min(score, best_score)
         return best_score
 
-# Game Loop
-player = "X"
-game_over = False
-difficulty = "hard"  # Escolha entre "easy" ou "hard"
+def draw_title():
+    title_text = TITLE_FONT.render("Jogo da Velha", True, (255, 255, 255))
+    screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 50))
 
-draw_lines()
+def draw_buttons():
+    restart_text = TEXT_FONT.render("Reiniciar", True, (255, 255, 255))
+    pygame.draw.rect(screen, (0, 0, 0), (50, HEIGHT - 150, 200, 100))
+    screen.blit(restart_text, (100, HEIGHT - 130))
+
+def draw_score():
+    score_text = TEXT_FONT.render("Placar:", True, (255, 255, 255))
+    screen.blit(score_text, (WIDTH - 200, 50))
+    player_x_text = TEXT_FONT.render("X: " + str(player_wins["X"]), True, (255, 255, 255))
+    screen.blit(player_x_text, (WIDTH - 150, 130))
+    player_o_text = TEXT_FONT.render("O: " + str(player_wins["O"]), True, (255, 255, 255))
+    screen.blit(player_o_text, (WIDTH - 150, 230))
+
+# Game Loop
+title_screen = True
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN and title_screen:
+            mouseX, mouseY = pygame.mouse.get_pos()
+            if 50 <= mouseX <= 250 and HEIGHT - 150 <= mouseY <= HEIGHT - 50:
+                title_screen = False
         if event.type == pygame.MOUSEBUTTONDOWN and not game_over and player == "X":
             mouseX = event.pos[0]
             mouseY = event.pos[1]
@@ -190,6 +216,7 @@ while True:
                 if check_win(player):
                     game_over = True
                     VICTORY_SOUND.play()
+                    player_wins[player] += 1
                 else:
                     if is_board_full():
                         game_over = True
@@ -210,6 +237,7 @@ while True:
             if check_win(player):
                 game_over = True
                 VICTORY_SOUND.play()
+                player_wins[player] += 1
             elif is_board_full():
                 game_over = True
                 DRAW_SOUND.play()
@@ -219,8 +247,19 @@ while True:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
-                game_over = False
-                player = "X"
                 restart()
+            if event.key == pygame.K_q:
+                pygame.quit()
+                sys.exit()
+
+    if title_screen:
+        screen.fill(BG_COLOR)
+        draw_title()
+        draw_buttons()
+    else:
+        screen.fill(BG_COLOR)
+        draw_lines()
+        draw_figures()
+        draw_score()
 
     pygame.display.update()
