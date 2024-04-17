@@ -16,11 +16,17 @@ CIRCLE_RADIUS = 60
 CIRCLE_WIDTH = 15
 CROSS_WIDTH = 25
 SPACE = 55
+
 # Cores
 BG_COLOR = (28, 170, 156)
 LINE_COLOR = (23, 145, 135)
 CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (66, 66, 66)
+
+# Sons
+VALID_MOVE_SOUND = pygame.mixer.Sound("valid_move.wav")
+VICTORY_SOUND = pygame.mixer.Sound("victory.wav")
+DRAW_SOUND = pygame.mixer.Sound("draw.wav")
 
 # Janela
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -169,11 +175,14 @@ while True:
 
             if available_square(clicked_row, clicked_col):
                 mark_square(clicked_row, clicked_col, player)
+                VALID_MOVE_SOUND.play()  # Efeito sonoro para movimento válido
                 if check_win(player):
                     game_over = True
+                    VICTORY_SOUND.play()  # Efeito sonoro para vitória
                 else:
                     if is_board_full():
                         game_over = True
+                        DRAW_SOUND.play()  # Efeito sonoro para empate
                     else:
                         player = "O"
 
@@ -186,10 +195,13 @@ while True:
                 row, col = computer_move("hard")
 
             mark_square(row, col, player)
+            VALID_MOVE_SOUND.play()  # Efeito sonoro para movimento válido
             if check_win(player):
                 game_over = True
+                VICTORY_SOUND.play()  # Efeito sonoro para vitória
             elif is_board_full():
                 game_over = True
+                DRAW_SOUND.play()  # Efeito sonoro para empate
             else:
                 player = "X"
             draw_figures()
