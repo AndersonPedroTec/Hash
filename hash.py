@@ -22,6 +22,7 @@ BG_COLOR = (28, 170, 156)
 LINE_COLOR = (23, 145, 135)
 CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (66, 66, 66)
+HIGHLIGHT_COLOR = (255, 255, 0, 100)  # Amarelo semitransparente
 
 # Sons
 VALID_MOVE_SOUND = pygame.mixer.Sound("valid_move.wav")
@@ -73,19 +74,19 @@ def check_win(player):
     # Verifica linhas
     for row in range(BOARD_ROWS):
         if board[row][0] == player and board[row][1] == player and board[row][2] == player:
-            draw_win_line((row, 0), (row, 2))
+            highlight_line("row", row)
             return True
     # Verifica colunas
     for col in range(BOARD_COLS):
         if board[0][col] == player and board[1][col] == player and board[2][col] == player:
-            draw_win_line((0, col), (2, col))
+            highlight_line("col", col)
             return True
     # Verifica diagonais
     if board[0][0] == player and board[1][1] == player and board[2][2] == player:
-        draw_win_line((0, 0), (2, 2))
+        highlight_line("diag", 1)
         return True
     if board[2][0] == player and board[1][1] == player and board[0][2] == player:
-        draw_win_line((2, 0), (0, 2))
+        highlight_line("diag", 2)
         return True
     return False
 
@@ -95,6 +96,16 @@ def draw_win_line(start, end):
     end_x = end[1] * SQUARE_SIZE + SQUARE_SIZE // 2
     end_y = end[0] * SQUARE_SIZE + SQUARE_SIZE // 2
     pygame.draw.line(screen, (255, 0, 0), (start_x, start_y), (end_x, end_y), 4)
+
+def highlight_line(direction, index):
+    if direction == "row":
+        pygame.draw.rect(screen, HIGHLIGHT_COLOR, (0, index * SQUARE_SIZE, WIDTH, SQUARE_SIZE))
+    elif direction == "col":
+        pygame.draw.rect(screen, HIGHLIGHT_COLOR, (index * SQUARE_SIZE, 0, SQUARE_SIZE, HEIGHT))
+    elif direction == "diag" and index == 1:
+        pygame.draw.rect(screen, HIGHLIGHT_COLOR, (0, 0, WIDTH, HEIGHT), 15)
+    elif direction == "diag" and index == 2:
+        pygame.draw.rect(screen, HIGHLIGHT_COLOR, (0, HEIGHT, WIDTH, -HEIGHT), 15)
 
 def restart():
     screen.fill(BG_COLOR)
@@ -175,14 +186,14 @@ while True:
 
             if available_square(clicked_row, clicked_col):
                 mark_square(clicked_row, clicked_col, player)
-                VALID_MOVE_SOUND.play()  # Efeito sonoro para movimento válido
+                VALID_MOVE_SOUND.play()
                 if check_win(player):
                     game_over = True
-                    VICTORY_SOUND.play()  # Efeito sonoro para vitória
+                    VICTORY_SOUND.play()
                 else:
                     if is_board_full():
                         game_over = True
-                        DRAW_SOUND.play()  # Efeito sonoro para empate
+                        DRAW_SOUND.play()
                     else:
                         player = "O"
 
@@ -195,13 +206,13 @@ while True:
                 row, col = computer_move("hard")
 
             mark_square(row, col, player)
-            VALID_MOVE_SOUND.play()  # Efeito sonoro para movimento válido
+            VALID_MOVE_SOUND.play()
             if check_win(player):
                 game_over = True
-                VICTORY_SOUND.play()  # Efeito sonoro para vitória
+                VICTORY_SOUND.play()
             elif is_board_full():
                 game_over = True
-                DRAW_SOUND.play()  # Efeito sonoro para empate
+                DRAW_SOUND.play()
             else:
                 player = "X"
             draw_figures()
